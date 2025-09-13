@@ -11,6 +11,8 @@ const express = require('express');
 // Importa dotenv para poder leer las variables de entorno desde el archivo .env
 const dotenv = require('dotenv');
 
+const cors =require('cors')
+
 // Importación de rutas (comentadas por ahora hasta que se implementen)
 const authRoutes = require('./routes/auth');
 const gastosRoutes = require('./routes/gastos');
@@ -23,7 +25,11 @@ const app = express();
 
 // Middleware para procesar solicitudes con cuerpo en formato JSON
 app.use(express.json());
-
+app.use(cors({
+  origin: "http://localhost:5173",  // Tu frontend en Vue
+  methods: ["GET", "POST", "PUT", "DELETE"], 
+  credentials: true
+}));
 // Definición de rutas base (comentadas hasta activar los módulos)
 app.use('/api/auth', authRoutes);     // Rutas para autenticación de usuarios
 app.use('/api/gastos', gastosRoutes); // Rutas para gestión de gastos
