@@ -16,6 +16,10 @@ const cors =require('cors')
 // Importación de rutas (comentadas por ahora hasta que se implementen)
 const authRoutes = require('./routes/auth');
 const gastosRoutes = require('./routes/gastos');
+const categoariaRoutes= require('./routes/categoarias')
+const presupuestoRoutes= require('./routes/presupuestos')
+const adminRoutes = require('./routes/admin')
+
 
 // Carga las variables de entorno en process.env
 dotenv.config(); 
@@ -33,6 +37,9 @@ app.use(cors({
 // Definición de rutas base (comentadas hasta activar los módulos)
 app.use('/api/auth', authRoutes);     // Rutas para autenticación de usuarios
 app.use('/api/gastos', gastosRoutes); // Rutas para gestión de gastos
+app.use('/api/cate',categoariaRoutes) // Rutas para gestion  de categorias 
+app.use('/api/presupuesto',presupuestoRoutes) // Rutas para gestion  de presupuesto
+app.use('/api/admin',adminRoutes) // Rutas para usuarios adminitradores 
 
 // Inicia el servidor en el puerto definido en el archivo .env
 app.listen(process.env.PORT, () => {

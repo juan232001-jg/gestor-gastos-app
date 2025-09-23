@@ -69,15 +69,24 @@ exports.login = async (req, res) => {
     }
         // Buscar usuario por correo
            const [users] = await db.query(
-            'SELECT * FROM usuarios WHERE correo = ?',
+            `SELECT u.*, r.nombre AS rol_nombre
+             FROM usuarios u
+             JOIN roles r ON u.rol_id = r.id
+             WHERE u.correo = ?`,
             [correo]
         );
+        
     
         if (users.length === 0) {
             return res.status(404).json({ message: 'Usuario no encontrado' });
         }
 
         const user = users[0];
+         // ✅ Validar estado ANTES de la contraseña
+        if (Number(user.estado) !== 1) {
+            return res.status(403).json({ message: 'Usuario inactivo. Contacte al administrador.' });
+        }
+
 
         // Verificar contraseña
         const isMatch = await bcrypt.compareSync(contrasena, user.contrasena);
@@ -86,9 +95,12 @@ exports.login = async (req, res) => {
         }
 
         // Generar token JWT
-        const token = jwt.sign({ id: user.id, correo: user.correo }, process.env.JWT_SECRET, {
-            expiresIn: '1h'
-        });
+           // Generar token con rol_id y rol_nombre
+        const token = jwt.sign(
+            { id: user.id, correo: user.correo, rol_id: user.rol_id, rol: user.rol_nombre },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
 
         res.status(200).json({
             message: 'Login exitoso',
@@ -96,7 +108,10 @@ exports.login = async (req, res) => {
             user: {
                 id: user.id,
                 nombre: user.nombre,
-                correo: user.correo
+                correo: user.correo,
+                estado: user.estado,
+                rol_id: user.rol_id,
+                rol: user.rol_nombre
             }
         });
 

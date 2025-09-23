@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 // Importa el controlador de autenticación que contiene la lógica de cada endpoint
 const authController = require('../controllers/authController');
+const { verificarUsuarioActivo } = require('../middlewares/usuarioActivo');
 
 router.post('/register', authController.register);
 router.post('/login', authController.login);

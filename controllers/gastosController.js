@@ -1,34 +1,24 @@
 // controllers/gastosController.js
-const db = require ('../db');
+const db = require('../db');
 
+// Agregar gasto
 exports.agregarGasto = async (req, res) => {
     try {
-
-        if (!req.body) {
-            return res.status(400).json({ message: 'No se envió información en el body' });
-        }
-        
-        const { descripcion, monto, fecha_gasto } = req.body;
         const usuario_id = req.userId;
+        const { descripcion, monto, fecha_gasto, categoria_id } = req.body;
 
-        if (!usuario_id) {
-            return res.status(401).json({ message: 'Debe iniciar sesión' });
-        }
-
-        if (!descripcion || !monto || !fecha_gasto) {
+        if (!usuario_id) return res.status(401).json({ message: 'Debe iniciar sesión' });
+        if (!descripcion || !monto || !fecha_gasto) 
             return res.status(400).json({ message: 'Todos los campos son obligatorios' });
-        }
 
-        //aca insertamos  el gastos 
         const [insertResult] = await db.query(
-            `INSERT INTO gastos (usuario_id, descripcion, monto, fecha_gasto) VALUES (?, ?, ?, ?)`,
-            [usuario_id, descripcion, monto, fecha_gasto]
+            `INSERT INTO gastos (usuario_id, categoria_id, descripcion, monto, fecha_gasto)
+             VALUES (?, ?, ?, ?, ?)`,
+            [usuario_id, categoria_id || null, descripcion, monto, fecha_gasto]
         );
 
-
-        //Cunsulta el gasto  se acabo de guardar 
         const [nuevoGasto] = await db.query(
-            `SELECT id, usuario_id, descripcion, monto, fecha_gasto 
+            `SELECT id, usuario_id, categoria_id, descripcion, monto, fecha_gasto 
              FROM gastos WHERE id = ?`,
             [insertResult.insertId]
         );
@@ -37,27 +27,24 @@ exports.agregarGasto = async (req, res) => {
             message: 'Gasto registrado con éxito',
             gasto: nuevoGasto[0]
         });
+
     } catch (error) {
+        console.error('Error al agregar gasto:', error);
         res.status(500).json({ message: 'Error interno', error: error.message });
     }
 };
-// Esta funcion permite odetener gastops ya guradados 
+
+// Obtener todos los gastos
 exports.obtenerGastos = async (req, res) => {
     try {
-        const usuario_id = req.userId; // viene del middleware de auth
-
-        if (!usuario_id) {
-            return res.status(401).json({ message: 'Debe iniciar sesión' });
-        }
+        const usuario_id = req.userId;
+        if (!usuario_id) return res.status(401).json({ message: 'Debe iniciar sesión' });
 
         const [gastos] = await db.query(
-            'SELECT id, descripcion, monto, fecha_gasto FROM gastos WHERE usuario_id = ? ORDER BY fecha_gasto DESC',
+            `SELECT id, categoria_id, descripcion, monto, fecha_gasto 
+             FROM gastos WHERE usuario_id = ? ORDER BY fecha_gasto DESC`,
             [usuario_id]
         );
-
-        if (gastos.length === 0) {
-            return res.status(200).json({ message: 'No se encontraron gastos registrados', gastos: [] });
-        }
 
         return res.status(200).json({
             message: 'Gastos obtenidos con éxito',
@@ -67,76 +54,57 @@ exports.obtenerGastos = async (req, res) => {
 
     } catch (error) {
         console.error('Error al obtener gastos:', error);
-        return res.status(500).json({
-            message: 'Error al obtener gastos',
-            error: error.message
-        });
+        return res.status(500).json({ message: 'Error interno', error: error.message });
     }
 };
-// Esta funcio permite eliminar gastos 
-exports.eliminarGasto =  async (req, res) => {
+
+// Eliminar gasto
+exports.eliminarGasto = async (req, res) => {
     try {
         const usuario_id = req.userId;
-        const {id}= req.params;
-        //validar que   haya usuario 
-        if (!usuario_id) {
-            return res.status(401).json({ message: 'Debe iniciar sesión' });
-        }
+        const { id } = req.params;
+        if (!usuario_id) return res.status(401).json({ message: 'Debe iniciar sesión' });
+
         const [result] = await db.query(
-            'DELETE FROM gastos WHERE id =? AND usuario_id =?',
-            [id,usuario_id]
+            'DELETE FROM gastos WHERE id = ? AND usuario_id = ?',
+            [id, usuario_id]
         );
+
         if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Gasto no encontrado o no pertenece al usuario' });
         }
-   
 
-     const [gastoEliminado] = await db.query(
-            `SELECT id, usuario_id, descripcion, monto, fecha_gasto 
-             FROM gastos WHERE id = ?`,
-            [req.params.id]
-        );
-
-        res.status(200).json({
-            message: "Gasto eliminado correctamente",
-            gasto: gastoEliminado
-        });
+        return res.status(200).json({ message: 'Gasto eliminado correctamente' });
 
     } catch (error) {
         console.error('Error al eliminar gasto:', error);
         return res.status(500).json({ message: 'Error interno', error: error.message });
-    
     }
 };
 
-// Este bloque de codi me permite  editar gastos 
-exports.editarGatos = async(req,res) =>{
+// Editar gasto
+exports.editarGasto = async (req, res) => {
     try {
         const usuario_id = req.userId;
-        const {id}= req.params;
-        const {descripcion,monto,fecha_gasto}=req.body
-        // Conprobacion de el body no benga vacio 
-        if (!req.body) {
-            return res.status(400).json({ message: 'No se envió información en el body' });
-        }
-        // Conprueba de la secccio esta activa 
-        if (!usuario_id) {
-            return res.status(401).json({ message: 'Debe iniciar sesión' });
-        }
-        // Comprobacion de que  todson  los campos bengn llenos 
-        if (!descripcion || !monto || !fecha_gasto) {
+        const { id } = req.params;
+        const { descripcion, monto, fecha_gasto, categoria_id } = req.body;
+
+        if (!usuario_id) return res.status(401).json({ message: 'Debe iniciar sesión' });
+        if (!descripcion || !monto || !fecha_gasto) 
             return res.status(400).json({ message: 'Todos los campos son obligatorios' });
-        }
-        
-        const [gatoEditado] = await db.query(
-            'UPDATE gastos SET descripcion = ?, monto = ?, fecha_gasto = ? WHERE id = ? AND usuario_id = ?',
-            [descripcion, monto, fecha_gasto, id, usuario_id]
+
+        const [result] = await db.query(
+            `UPDATE gastos SET descripcion = ?, monto = ?, fecha_gasto = ?, categoria_id = ?
+             WHERE id = ? AND usuario_id = ?`,
+            [descripcion, monto, fecha_gasto, categoria_id || null, id, usuario_id]
         );
-        if (gatoEditado.affectedRows==0) {
+
+        if (result.affectedRows === 0) {
             return res.status(404).json({ message: 'Gasto no encontrado o no pertenece al usuario' });
         }
+
         const [gastoActualizado] = await db.query(
-            'SELECT id, descripcion, monto, fecha_gasto FROM gastos WHERE id = ? AND usuario_id = ?',
+            'SELECT id, categoria_id, descripcion, monto, fecha_gasto FROM gastos WHERE id = ? AND usuario_id = ?',
             [id, usuario_id]
         );
 
@@ -145,40 +113,35 @@ exports.editarGatos = async(req,res) =>{
             gasto: gastoActualizado[0]
         });
 
-
-        
-        
     } catch (error) {
-        console.error('Error al Editar gasto:', error);
+        console.error('Error al editar gasto:', error);
         return res.status(500).json({ message: 'Error interno', error: error.message });
     }
-}
+};
 
-// Odtener gastos  por id 
-exports.odtenerGatosId = async (req,res)=>{
+// Obtener gasto por ID
+exports.obtenerGastoPorId = async (req, res) => {
     try {
-        const usuario_id =req.userId
-        const {id}=req.params
+        const usuario_id = req.userId;
+        const { id } = req.params;
+        if (!usuario_id) return res.status(401).json({ message: 'Debe iniciar sesión' });
 
-        if (!usuario_id) {
-            return res.status(401).json({message:'Debes Iniciar Seccion '});
+        const [gasto] = await db.query(
+            'SELECT id, categoria_id, descripcion, monto, fecha_gasto FROM gastos WHERE id = ? AND usuario_id = ?',
+            [id, usuario_id]
+        );
+
+        if (gasto.length === 0) {
+            return res.status(404).json({ message: 'Gasto no encontrado o no pertenece al usuario' });
         }
 
-        const [gasto]=await db.query(
-            'SELECT id, descripcion, monto, fecha_gasto FROM gastos WHERE id =? AND usuario_id=?',
-            [id,usuario_id]
-
-        )
-
-        if (gasto.length===0) {
-            return res.status(500).json({message:'Gatos no encontrados o no pertenecen al usuario'})
-        }
         return res.status(200).json({
-            message:'Gatos Odtenidos Con exito',
-            gasto:gasto[0]
-        })
+            message: 'Gasto obtenido con éxito',
+            gasto: gasto[0]
+        });
+
     } catch (error) {
         console.error('Error al obtener gasto por ID:', error);
         return res.status(500).json({ message: 'Error interno', error: error.message });
     }
-}
+};

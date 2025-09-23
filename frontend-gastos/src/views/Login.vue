@@ -83,3 +83,45 @@ const doLogin = async () => {
 };
 </script>
 
+<style>
+/* Contenedor que ocupa toda la pantalla con fondo degradado */
+.login-container {
+  height: 100vh;
+  background: linear-gradient(135deg, #5a2d91, #8e44ad);
+  background-size: cover;
+}
+
+/* Estilo de la tarjeta (card) */
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.15); /* Transparente tipo "vidrio" */
+  backdrop-filter: blur(12px);            /* Efecto glassmorphism */
+  color: white;
+}
+
+/* Cambia el color del texto dentro de los inputs */
+.v-text-field input {
+  color: white !important;
+}
+
+/* Color del borde de los inputs */
+.v-field__outline {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Estilo del botón de login */
+.login-btn {
+  font-weight: bold;
+  color: #5a2d91 !important;
+}
+
+/* Enlaces para recuperar contraseña o registrarse (si los usas después) */
+.forgot,
+.register {
+  color: #ffd700;
+  font-weight: 500;
+  text-decoration: none;
+}
+</style>
