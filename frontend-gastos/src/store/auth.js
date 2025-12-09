@@ -28,7 +28,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = res.data.user
 
       // También guardamos el token en localStorage para persistencia
-      localStorage.setItem('token', this.token)
+      localStorage.setItem('token', this.token, this.user)
     },
 
     // Acción para registrar un nuevo usuario
@@ -54,3 +54,6 @@ export const useAuthStore = defineStore('auth', {
 
 // Mensaje en consola para saber que el store se cargó correctamente
 console.log('✅ Store auth.js cargado')
+
+
+
