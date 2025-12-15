@@ -4,6 +4,8 @@ import Register from '../views/Register.vue'
 import Gastos from '../views/Gastos.vue'
 import AgregarGasto from '@/views/AgregarGasto.vue'
 import Layout from '../views/Layout.vue'  // tu layout
+import Dashboard from '../views/Dashboard.vue'
+import Categorias from '../views/Categorias.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -13,7 +15,9 @@ const routes = [
     path: '/', component: Layout,
     children: [
       { path: 'gastos', component: Gastos },
-      { path: 'gastos/nuevo', component: AgregarGasto }
+      { path: 'gastos/nuevo', component: AgregarGasto },
+      { path: 'dashboard', component: Dashboard },
+      { path: 'categorias', component: Categorias }
     ]
   }
 ]

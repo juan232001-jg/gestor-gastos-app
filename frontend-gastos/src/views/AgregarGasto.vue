@@ -216,8 +216,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { agregarGasto } from '../api/gastos'
-// Importa tu función para obtener categorías
-// import { obtenerCategorias } from '../api/categorias'
+import { obtenerCategorias } from '../api/categorias'
 
 const router = useRouter()
 
@@ -240,20 +239,8 @@ const successMessage = ref('')
 // Cargar categorías al montar
 onMounted(async () => {
   try {
-    // Descomenta y ajusta según tu API
-    // const response = await obtenerCategorias()
-    // categorias.value = response.data.categorias
-
-    // Datos de ejemplo mientras tanto
-    categorias.value = [
-      { id: 1, nombre: 'Alimentación' },
-      { id: 2, nombre: 'Transporte' },
-      { id: 3, nombre: 'Entretenimiento' },
-      { id: 4, nombre: 'Servicios' },
-      { id: 5, nombre: 'Salud' },
-      { id: 6, nombre: 'Educación' },
-      { id: 7, nombre: 'Otros' }
-    ]
+    const response = await obtenerCategorias()
+    categorias.value = response.data.categorias
   } catch (error) {
     console.error('Error al cargar categorías:', error)
     errorGeneral.value = 'No se pudieron cargar las categorías'
@@ -389,5 +376,4 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 select option {
   padding: 12px;
 }
-
-</style
+</style>
