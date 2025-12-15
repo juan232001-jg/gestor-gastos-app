@@ -216,7 +216,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { agregarGasto } from '../api/gastos'
-import { obtenerCategorias } from '../api/categorias'
+import categoriasService from '../api/categorias.js'
 
 const router = useRouter()
 
@@ -239,7 +239,7 @@ const successMessage = ref('')
 // Cargar categorías al montar
 onMounted(async () => {
   try {
-    const response = await obtenerCategorias()
+    const response = await categoriasService.getAll()
     categorias.value = response.data.categorias
   } catch (error) {
     console.error('Error al cargar categorías:', error)

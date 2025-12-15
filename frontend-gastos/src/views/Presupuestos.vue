@@ -1,47 +1,55 @@
 <template>
-    <div class="categories-container">
-        <h1>📂 Mis Categorías</h1>
+    <div class="presupuestos-container">
+        <h1>📊 Mis Presupuestos</h1>
 
         <!-- Loading -->
         <div v-if="loading" class="loading">
             <div class="spinner"></div>
-            <p>Cargando categorías...</p>
+            <p>Cargando presupuestos...</p>
         </div>
 
         <!-- Error -->
         <div v-else-if="error" class="error-box">
             <p>❌ {{ error }}</p>
-            <button @click="fetchCategories" class="btn-retry">Reintentar</button>
+            <button @click="fetchPresupuestos" class="btn-retry">Reintentar</button>
         </div>
 
         <!-- Empty -->
-        <div v-else-if="categories.length === 0" class="empty">
-            <p>📦 No tienes categorías aún</p>
-            <button @click="openModal" class="btn-primary">Crear Primera Categoría</button>
+        <div v-else-if="presupuestos.length === 0" class="empty">
+            <p>📦 No tienes presupuestos aún</p>
+            <button @click="openModal" class="btn-primary">Crear Primer Presupuesto</button>
         </div>
 
-        <!-- Categories Table -->
+        <!-- Presupuestos Table -->
         <div v-else class="table-container">
-            <table class="categories-table">
+            <table class="presupuestos-table">
                 <thead>
                     <tr>
-                        <th>Icono</th>
+                        <th>Color</th>
                         <th>Nombre</th>
+                        <th>Monto</th>
+                        <th>Fechas</th>
+                        <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="category in categories" :key="category.id">
+                    <tr v-for="item in presupuestos" :key="item.id">
                         <td>
-                            <div class="category-icon"
-                                :style="{ backgroundColor: (category.color || '#667eea') + '30', color: category.color || '#667eea' }">
-                                {{ category.icon || '📊' }}
+                            <div class="color-indicator" :style="{ backgroundColor: item.color || '#667eea' }">
                             </div>
                         </td>
-                        <td class="name-cell">{{ category.nombre || category.name || '-' }}</td>
+                        <td class="name-cell">{{ item.nombre || item.name || '-' }}</td>
+                        <td class="money-cell">{{ formatMoney(item.monto || item.amount || 0) }}</td>
+                        <td class="date-cell">
+                            {{ formatDate(item.fecha_inicio) }} - {{ formatDate(item.fecha_fin) }}
+                        </td>
+                        <td>
+                            <span class="status-badge">Activo</span>
+                        </td>
                         <td class="actions-cell">
-                            <button @click="editCategory(category)" class="btn-edit" title="Editar">✏️</button>
-                            <button @click="deleteCategory(category)" class="btn-delete" title="Eliminar">
+                            <button @click="editItem(item)" class="btn-edit" title="Editar">✏️</button>
+                            <button @click="deleteItem(item)" class="btn-delete" title="Eliminar">
                                 🗑️
                             </button>
                         </td>
@@ -50,27 +58,33 @@
             </table>
         </div>
 
-        <button v-if="!loading && categories.length > 0" @click="openModal" class="btn-float">
+        <button v-if="!loading && presupuestos.length > 0" @click="openModal" class="btn-float">
             ➕
         </button>
 
         <!-- Modal -->
         <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
             <div class="modal">
-                <h2>{{ isEditing ? 'Editar' : 'Nueva' }} Categoría</h2>
-                <form @submit.prevent="saveCategory">
+                <h2>{{ isEditing ? 'Editar' : 'Nuevo' }} Presupuesto</h2>
+                <form @submit.prevent="saveItem">
                     <div class="form-group">
                         <label>Nombre *</label>
-                        <input v-model="formData.nombre" type="text" required placeholder="Ej: Alimentación" />
+                        <input v-model="formData.nombre" type="text" required placeholder="Ej: Mensual General" />
                     </div>
 
                     <div class="form-group">
-                        <label>Icono</label>
-                        <div class="icon-grid">
-                            <button v-for="emoji in emojis" :key="emoji" type="button" class="icon-btn"
-                                :class="{ active: formData.icon === emoji }" @click="formData.icon = emoji">
-                                {{ emoji }}
-                            </button>
+                        <label>Monto Objetivo *</label>
+                        <input v-model="formData.monto" type="number" required placeholder="0" />
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Fecha Inicio</label>
+                            <input v-model="formData.fecha_inicio" type="date" />
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha Fin</label>
+                            <input v-model="formData.fecha_fin" type="date" />
                         </div>
                     </div>
 
@@ -101,10 +115,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import categoryService from '../api/categorias.js'
+import presupuestoService from '../api/presupuestos.js'
 
 // estados
-const categories = ref([])
+const presupuestos = ref([])
 const loading = ref(false)
 const error = ref(null)
 const showModal = ref(false)
@@ -112,18 +126,19 @@ const saving = ref(false)
 const isEditing = ref(false)
 const editingId = ref(null)
 
-// formulario - usando 'nombre' para coincidir con la BD
+// formulario
 const formData = ref({
     nombre: '',
-    icon: '📊',
+    monto: '',
+    fecha_inicio: '',
+    fecha_fin: '',
     color: '#667eea'
 })
 
 // datos UI
-const emojis = ['🍕', '🚗', '🎮', '💡', '🏥', '📚', '🏠', '👕', '🎬', '✈️', '💰', '🎵']
 const colors = ['#667eea', '#EF4444', '#10B981', '#F59E0B', '#3B82F6', '#8B5CF6', '#EC4899', '#06B6D4']
 
-// formato moneda
+// utilidades
 const formatMoney = (amount) =>
     new Intl.NumberFormat('es-CO', {
         style: 'currency',
@@ -131,29 +146,35 @@ const formatMoney = (amount) =>
         minimumFractionDigits: 0
     }).format(amount)
 
-// 🔥 TRAER CATEGORÍAS DESDE LA BD
-const fetchCategories = async () => {
+const formatDate = (dateString) => {
+    if (!dateString) return '-'
+    return new Date(dateString).toLocaleDateString('es-CO', {
+        day: 'numeric', month: 'short'
+    })
+}
+
+// 🔥 CRUD
+const fetchPresupuestos = async () => {
     loading.value = true
     error.value = null
     try {
-        const response = await categoryService.getAll()
-        console.log('🔍 Respuesta completa de la API:', response)
-        console.log('🔍 response.data:', response.data)
-        // Intenta diferentes estructuras posibles
-        categories.value = response.data.categorias || response.data || []
+        const response = await presupuestoService.getAll()
+        // Ajustar según estructura real de tu API
+        presupuestos.value = response.data.presupuestos || response.data || []
     } catch (err) {
-        console.error('❌ Error al cargar categorías:', err)
-        error.value = 'No se pudieron cargar las categorías'
+        console.error('❌ Error al cargar presupuestos:', err)
+        error.value = 'No se pudieron cargar los presupuestos'
     } finally {
         loading.value = false
     }
 }
 
-// modal
 const openModal = () => {
     isEditing.value = false
     editingId.value = null
-    formData.value = { nombre: '', icon: '📊', color: '#667eea' }
+    formData.value = {
+        nombre: '', monto: '', fecha_inicio: '', fecha_fin: '', color: '#667eea'
+    }
     showModal.value = true
 }
 
@@ -161,80 +182,54 @@ const closeModal = () => {
     showModal.value = false
 }
 
-// editar
-const editCategory = (category) => {
+const editItem = (item) => {
     isEditing.value = true
-    editingId.value = category.id
+    editingId.value = item.id
     formData.value = {
-        nombre: category.nombre || category.name || '',
-        icon: category.icon || '📊',
-        color: category.color || '#667eea'
+        nombre: item.nombre || item.name,
+        monto: item.monto || item.amount,
+        fecha_inicio: item.fecha_inicio ? item.fecha_inicio.split('T')[0] : '',
+        fecha_fin: item.fecha_fin ? item.fecha_fin.split('T')[0] : '',
+        color: item.color || '#667eea'
     }
     showModal.value = true
 }
 
-// guardar
-const saveCategory = async () => {
-    // Validar que el nombre no esté vacío
-    if (!formData.value.nombre || formData.value.nombre.trim() === '') {
-        alert('El nombre de la categoría es requerido')
-        return
-    }
-
+const saveItem = async () => {
     saving.value = true
     try {
-        const dataToSend = {
-            nombre: formData.value.nombre.trim(),
-            icon: formData.value.icon,
-            color: formData.value.color
-        }
-
-        console.log('📤 Enviando datos:', dataToSend)
-
         if (isEditing.value) {
-            await categoryService.update(editingId.value, dataToSend)
-            console.log('✅ Categoría actualizada')
+            await presupuestoService.update(editingId.value, formData.value)
         } else {
-            await categoryService.create(dataToSend)
-            console.log('✅ Categoría creada')
+            await presupuestoService.create(formData.value)
         }
-        await fetchCategories()
+        await fetchPresupuestos()
         closeModal()
     } catch (err) {
         console.error('❌ Error al guardar:', err)
-        alert('Error al guardar la categoría: ' + (err.response?.data?.message || err.message))
+        alert('Error al guardar: ' + (err.response?.data?.message || err.message))
     } finally {
         saving.value = false
     }
 }
 
-// eliminar
-const deleteCategory = async (category) => {
-    console.log('🗑️ Intentando eliminar categoría:', category)
-
-    const categoryName = category.nombre || category.name || 'esta categoría'
-    if (!confirm(`¿Eliminar "${categoryName}"?`)) return
-
+const deleteItem = async (item) => {
+    if (!confirm(`¿Eliminar presupuesto "${item.nombre || item.name}"?`)) return
     try {
-        console.log('📤 Eliminando ID:', category.id)
-        await categoryService.delete(category.id)
-        console.log('✅ Categoría eliminada exitosamente')
-        await fetchCategories()
+        await presupuestoService.delete(item.id)
+        fetchPresupuestos()
     } catch (err) {
-        console.error('❌ Error al eliminar:', err)
-        console.error('❌ Response:', err.response?.data)
-        alert('Error al eliminar la categoría: ' + (err.response?.data?.message || err.message))
+        console.error(err)
+        alert('Error al eliminar')
     }
 }
 
-// cargar al iniciar
-onMounted(fetchCategories)
+onMounted(fetchPresupuestos)
 </script>
 
-
 <style scoped>
-/* ——— estilos generales ——— */
-.categories-container {
+/* Estilos reutilizados con ajustes */
+.presupuestos-container {
     padding: 2rem;
     max-width: 1200px;
     margin: auto;
@@ -253,7 +248,6 @@ h1 {
 }
 
 .btn-retry {
-    margin-top: 1rem;
     padding: 0.5rem 1rem;
     background: #667eea;
     color: white;
@@ -272,7 +266,7 @@ h1 {
     font-weight: 600;
 }
 
-/* ——— tabla ——— */
+/* Tabla */
 .table-container {
     background: #fff;
     border-radius: 12px;
@@ -280,44 +274,40 @@ h1 {
     overflow: hidden;
 }
 
-.categories-table {
+.presupuestos-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.categories-table thead {
+.presupuestos-table thead {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
 }
 
-.categories-table th {
+.presupuestos-table th {
     padding: 1rem;
     text-align: left;
     font-weight: 600;
 }
 
-.categories-table tbody tr {
+.presupuestos-table tbody tr {
     border-bottom: 1px solid #eee;
     transition: background-color 0.2s;
 }
 
-.categories-table tbody tr:hover {
+.presupuestos-table tbody tr:hover {
     background-color: #f8f9ff;
 }
 
-.categories-table td {
+.presupuestos-table td {
     padding: 1rem;
     vertical-align: middle;
 }
 
-.category-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
+.color-indicator {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
 }
 
 .name-cell {
@@ -325,22 +315,23 @@ h1 {
     color: #333;
 }
 
-.desc-cell {
-    color: #666;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.center-cell {
-    text-align: center;
-    font-weight: 500;
-}
-
 .money-cell {
     font-weight: 600;
     color: #10B981;
+}
+
+.date-cell {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.status-badge {
+    background: #def7ec;
+    color: #03543f;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
 .actions-cell {
@@ -355,76 +346,46 @@ h1 {
     border: none;
     cursor: pointer;
     font-size: 1rem;
-    transition: transform 0.2s;
 }
 
 .btn-edit {
     background: #e0e7ff;
 }
 
-.btn-edit:hover {
-    transform: scale(1.1);
-}
-
 .btn-delete {
     background: #fee2e2;
 }
 
-.btn-delete:hover:not(:disabled) {
-    transform: scale(1.1);
-}
-
-.btn-delete:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* ——— botón flotante ——— */
-.btn-float {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff;
-    font-size: 1.5rem;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    transition: transform 0.2s;
-}
-
-.btn-float:hover {
-    transform: scale(1.1);
-}
-
-/* ——— modal ——— */
+/* Modal y Forms */
 .modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
     display: flex;
-    align-items: center;
     justify-content: center;
+    align-items: center;
     z-index: 1000;
 }
 
 .modal {
-    background: #fff;
+    background: white;
     padding: 2rem;
-    border-radius: 14px;
+    border-radius: 12px;
     width: 90%;
     max-width: 480px;
 }
 
-.modal h2 {
-    margin-bottom: 1.5rem;
-}
-
 .form-group {
     margin-bottom: 1rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
 }
 
 .form-group label {
@@ -433,44 +394,34 @@ h1 {
     font-weight: 500;
 }
 
-.form-group input,
-.form-group textarea {
+.form-group input {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
+    border-radius: 6px;
 }
 
-.icon-grid,
 .color-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     gap: 0.5rem;
 }
 
-.icon-btn,
 .color-btn {
-    padding: 0.5rem;
-    border-radius: 8px;
+    height: 36px;
+    border-radius: 6px;
     border: 2px solid #ddd;
     cursor: pointer;
-    background: white;
-    font-size: 1.2rem;
-}
-
-.icon-btn.active,
-.color-btn.active {
-    border-color: #667eea;
-}
-
-.color-btn {
-    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-weight: bold;
+}
+
+.color-btn.active {
+    border-color: #333;
+    transform: scale(1.1);
 }
 
 .modal-actions {
@@ -492,6 +443,22 @@ h1 {
     flex: 1;
 }
 
+.btn-float {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    font-size: 1.5rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Spinner */
 .spinner {
     width: 40px;
     height: 40px;

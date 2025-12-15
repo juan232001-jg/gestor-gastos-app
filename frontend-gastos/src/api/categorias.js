@@ -1,5 +1,18 @@
-// src/api/categorias.js
 import api from './axios'
 
-// Obtener todas las categorías
-export const obtenerCategorias = () => api.get('/cate/categorias')
+const categoryService = {
+    getAll() {
+        return api.get('/cate/categorias')
+    },
+    create(data) {
+        return api.post('/cate/categorias', data)
+    },
+    update(id, data) {
+        return api.put(`/cate/categorias/${id}`, data)
+    },
+    delete(id) {
+        return api.delete(`/cate/categorias/${id}`)
+    }
+}
+
+export default categoryService

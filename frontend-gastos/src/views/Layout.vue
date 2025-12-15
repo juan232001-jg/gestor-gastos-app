@@ -164,6 +164,78 @@
                         </div>
                     </button>
                 </router-link>
+
+                <!-- Presupuestos -->
+                <router-link to="/presupuestos" custom v-slot="{ navigate, isActive }">
+                    <button @click="navigate" :class="[
+                        'w-full group relative overflow-hidden rounded-2xl transition-all duration-300',
+                        sidebarOpen ? 'h-14' : 'h-14',
+                        isActive
+                            ? 'bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 shadow-lg shadow-violet-500/20'
+                            : 'hover:bg-white/5'
+                    ]">
+                        <div v-if="isActive"
+                            class="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-10"></div>
+                        <div :class="[
+                            'relative z-10 flex items-center h-full px-4',
+                            sidebarOpen ? 'justify-start gap-4' : 'justify-center'
+                        ]">
+                            <div :class="[
+                                'flex items-center justify-center rounded-xl transition-all duration-300',
+                                isActive ? 'w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/50' : 'w-10 h-10 bg-white/5'
+                            ]">
+                                <svg class="w-5 h-5" :class="isActive ? 'text-white' : 'text-white/60'" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                </svg>
+                            </div>
+                            <span v-if="sidebarOpen"
+                                :class="['font-semibold transition-colors', isActive ? 'text-white' : 'text-white/60 group-hover:text-white']">
+                                Presupuestos
+                            </span>
+                        </div>
+                        <div v-if="isActive"
+                            class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-violet-500 to-fuchsia-500 rounded-r-full">
+                        </div>
+                    </button>
+                </router-link>
+
+                <!-- Usuarios -->
+                <router-link to="/usuarios" custom v-slot="{ navigate, isActive }">
+                    <button @click="navigate" :class="[
+                        'w-full group relative overflow-hidden rounded-2xl transition-all duration-300',
+                        sidebarOpen ? 'h-14' : 'h-14',
+                        isActive
+                            ? 'bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 shadow-lg shadow-violet-500/20'
+                            : 'hover:bg-white/5'
+                    ]">
+                        <div v-if="isActive"
+                            class="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 opacity-10"></div>
+                        <div :class="[
+                            'relative z-10 flex items-center h-full px-4',
+                            sidebarOpen ? 'justify-start gap-4' : 'justify-center'
+                        ]">
+                            <div :class="[
+                                'flex items-center justify-center rounded-xl transition-all duration-300',
+                                isActive ? 'w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-lg shadow-violet-500/50' : 'w-10 h-10 bg-white/5'
+                            ]">
+                                <svg class="w-5 h-5" :class="isActive ? 'text-white' : 'text-white/60'" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                                </svg>
+                            </div>
+                            <span v-if="sidebarOpen"
+                                :class="['font-semibold transition-colors', isActive ? 'text-white' : 'text-white/60 group-hover:text-white']">
+                                Usuarios
+                            </span>
+                        </div>
+                        <div v-if="isActive"
+                            class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-violet-500 to-fuchsia-500 rounded-r-full">
+                        </div>
+                    </button>
+                </router-link>
             </nav>
 
             <!-- User Profile -->

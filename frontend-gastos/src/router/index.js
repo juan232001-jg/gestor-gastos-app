@@ -6,6 +6,8 @@ import AgregarGasto from '@/views/AgregarGasto.vue'
 import Layout from '../views/Layout.vue'  // tu layout
 import Dashboard from '../views/Dashboard.vue'
 import Categorias from '../views/Categorias.vue'
+import Presupuestos from '../views/Presupuestos.vue'
+import Usuarios from '../views/Usuarios.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -17,7 +19,9 @@ const routes = [
       { path: 'gastos', component: Gastos },
       { path: 'gastos/nuevo', component: AgregarGasto },
       { path: 'dashboard', component: Dashboard },
-      { path: 'categorias', component: Categorias }
+      { path: 'categorias', component: Categorias },
+      { path: 'presupuestos', component: Presupuestos },
+      { path: 'usuarios', component: Usuarios }
     ]
   }
 ]
