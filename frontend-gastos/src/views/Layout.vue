@@ -1,5 +1,6 @@
 <template>
-    <div class="min-h-screen bg-[#0a0118] relative overflow-hidden flex">
+    <div class="min-h-screen bg-[#0a0118] relative overflow-hidden flex transition-all duration-500"
+        :style="!isDarkMode ? 'filter: invert(1) hue-rotate(180deg);' : ''">
 
         <!-- Grid pattern background -->
         <div class="absolute inset-0 bg-grid-pattern opacity-20"></div>
@@ -46,16 +47,24 @@
                     </div>
                 </transition>
 
-                <button @click="toggleSidebar"
-                    class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110 group">
-                    <svg class="w-5 h-5 text-white/60 group-hover:text-white transition-colors" fill="none"
-                        stroke="currentColor" viewBox="0 0 24 24">
-                        <path v-if="sidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M6 18L18 6M6 6l12 12" />
-                        <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
+                <div class="flex gap-2">
+                    <!-- Theme Toggle -->
+                    <button @click="toggleTheme" title="Cambiar Tema"
+                        class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110">
+                        <span class="text-xl">{{ isDarkMode ? '🌙' : '☀️' }}</span>
+                    </button>
+
+                    <button @click="toggleSidebar"
+                        class="w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110 group">
+                        <svg class="w-5 h-5 text-white/60 group-hover:text-white transition-colors" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path v-if="sidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                            <path v-else stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <!-- Navigation -->
@@ -130,7 +139,7 @@
                     </button>
                 </router-link>
 
-                <router-link to="/categorias" custom v-slot="{ navigate, isActive }">
+                <router-link to="/categorias" custom v-slot="{ navigate, isActive }" v-if="isAdmin">
                     <button @click="navigate" :class="[
                         'w-full group relative overflow-hidden rounded-2xl transition-all duration-300',
                         sidebarOpen ? 'h-14' : 'h-14',
@@ -202,7 +211,7 @@
                 </router-link>
 
                 <!-- Usuarios -->
-                <router-link to="/usuarios" custom v-slot="{ navigate, isActive }">
+                <router-link to="/usuarios" custom v-slot="{ navigate, isActive }" v-if="isAdmin">
                     <button @click="navigate" :class="[
                         'w-full group relative overflow-hidden rounded-2xl transition-all duration-300',
                         sidebarOpen ? 'h-14' : 'h-14',
@@ -289,19 +298,33 @@ const router = useRouter();
 const auth = useAuthStore();
 
 const sidebarOpen = ref(true);
+const isDarkMode = ref(true);
 
 const toggleSidebar = () => {
     sidebarOpen.value = !sidebarOpen.value;
 };
 
+const toggleTheme = () => {
+    isDarkMode.value = !isDarkMode.value;
+    // Apply contrast filter to body/app for a quick light mode simulation
+    // Since the app is built as Dark Only, this works surprisingly well for high contrast
+};
+
 const userName = computed(() => auth.user?.nombre || 'Usuario');
 const userEmail = computed(() => auth.user?.correo || 'usuario@ejemplo.com');
 const userInitials = computed(() => {
+    if (!userName.value) return '?';
     const name = userName.value.split(' ');
     if (name.length >= 2) {
         return (name[0][0] + name[1][0]).toUpperCase();
     }
     return name[0][0].toUpperCase();
+});
+
+// Computed property to check if user is admin (assuming role ID 1 is Admin)
+const isAdmin = computed(() => {
+    const roleId = auth.user?.id_rol || auth.user?.rol_id || 2; // Default to 2 (User)
+    return Number(roleId) === 1;
 });
 
 const handleLogout = async () => {

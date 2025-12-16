@@ -1,115 +1,164 @@
 <template>
     <div class="dashboard-container">
-        <!-- Header con estadísticas principales -->
-        <div class="stats-grid">
-            <!-- Stat Card 1 -->
-            <div class="stat-card stat-card--primary">
-                <div class="stat-card__header">
-                    <span class="stat-card__icon">💰</span>
-                    <span class="stat-card__title">Balance Total</span>
-                </div>
-                <div class="stat-card__value">{{ formatCurrency(totalBalance) }}</div>
-                <div class="stat-card__footer">
-                    <div class="stat-card__trend trend--positive">
-                        <span class="trend-icon">↗</span>
-                        <span class="trend-text">{{ Math.abs(balanceTrend) }}%</span>
-                        <span class="trend-label">vs mes anterior</span>
-                    </div>
-                </div>
+        <!-- Background Animations (Consistent with Gastos.vue) -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div
+                class="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse">
             </div>
-
-            <!-- Stat Card 2 -->
-            <div class="stat-card stat-card--danger">
-                <div class="stat-card__header">
-                    <span class="stat-card__icon">💸</span>
-                    <span class="stat-card__title">Gastos del Mes</span>
-                </div>
-                <div class="stat-card__value">{{ formatCurrency(monthExpenses) }}</div>
-                <div class="stat-card__footer">
-                    <div class="stat-card__trend trend--negative">
-                        <span class="trend-icon">↘</span>
-                        <span class="trend-text">{{ Math.abs(expensesTrend) }}%</span>
-                        <span class="trend-label">vs mes anterior</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stat Card 3 -->
-            <div class="stat-card stat-card--warning">
-                <div class="stat-card__header">
-                    <span class="stat-card__icon">🎯</span>
-                    <span class="stat-card__title">Presupuesto Restante</span>
-                </div>
-                <div class="stat-card__value">{{ formatCurrency(budgetRemaining) }}</div>
-                <div class="stat-card__footer">
-                    <div class="stat-card__progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" :style="{ width: `${budgetPercentage}%` }"></div>
-                        </div>
-                        <span class="progress-text">{{ budgetPercentage }}% del presupuesto</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Stat Card 4 -->
-            <div class="stat-card stat-card--success">
-                <div class="stat-card__header">
-                    <span class="stat-card__icon">🏦</span>
-                    <span class="stat-card__title">Ahorro</span>
-                </div>
-                <div class="stat-card__value">{{ formatCurrency(savings) }}</div>
-                <div class="stat-card__footer">
-                    <div class="stat-card__trend trend--positive">
-                        <span class="trend-icon">↗</span>
-                        <span class="trend-text">{{ Math.abs(savingsTrend) }}%</span>
-                        <span class="trend-label">vs mes anterior</span>
-                    </div>
-                </div>
-            </div>
+            <div class="absolute bottom-20 right-10 w-96 h-96 bg-fuchsia-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
+                style="animation-delay: 1s"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"
+                style="animation-delay: 2s"></div>
         </div>
 
-        <!-- Gráficas principales -->
-        <div class="charts-grid">
-            <!-- Gráfica de gastos por categoría -->
-            <div class="chart-card">
-                <h3>Gastos por Categoría</h3>
-                <canvas ref="categoryChart"></canvas>
-            </div>
+        <div class="relative z-10 w-full max-w-7xl mx-auto">
+            <h1 class="text-3xl font-bold text-white mb-2 tracking-tight pl-2">Panel Principal</h1>
+            <p class="text-purple-200 text-sm mb-8 pl-2">Resumen de tu actividad financiera</p>
 
-            <!-- Gráfica de tendencia mensual -->
-            <div class="chart-card">
-                <h3>Tendencia Mensual</h3>
-                <canvas ref="trendChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Últimas transacciones -->
-        <div class="recent-transactions">
-            <h3>Transacciones Recientes</h3>
-
-            <div v-if="recentTransactions.length === 0" class="empty-state">
-                <div class="empty-icon">📋</div>
-                <p>No hay transacciones recientes</p>
-            </div>
-
-            <div v-else class="transactions">
-                <div v-for="transaction in recentTransactions" :key="transaction.id" class="transaction-item"
-                    :class="{ 'transaction-income': transaction.amount > 0 }">
-                    <div class="transaction-icon">
-                        {{ getCategoryIcon(transaction.category) }}
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <!-- Balance Card -->
+                <div class="stat-card group">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium mb-1">Balance Total</p>
+                            <h3 class="text-2xl font-bold text-white">{{ formatCurrency(totalBalance) }}</h3>
+                        </div>
+                        <div
+                            class="p-3 rounded-xl bg-blue-500/20 text-blue-300 group-hover:bg-blue-500/30 transition-colors">
+                            <span class="text-2xl">💰</span>
+                        </div>
                     </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="trend-badge bg-emerald-500/20 text-emerald-300">
+                            {{ balanceTrend >= 0 ? '↗' : '↘' }} {{ Math.abs(balanceTrend) }}%
+                        </span>
+                        <span class="text-white/40 ml-2">vs mes anterior</span>
+                    </div>
+                </div>
 
-                    <div class="transaction-details">
-                        <h4 class="transaction-description">{{ transaction.description }}</h4>
-                        <div class="transaction-meta">
-                            <span class="transaction-category">{{ transaction.category }}</span>
-                            <span class="transaction-date">{{ formatDate(transaction.date) }}</span>
+                <!-- Expenses Card -->
+                <div class="stat-card group">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium mb-1">Gastos del Mes</p>
+                            <h3 class="text-2xl font-bold text-white">{{ formatCurrency(monthExpenses) }}</h3>
+                        </div>
+                        <div
+                            class="p-3 rounded-xl bg-red-500/20 text-red-300 group-hover:bg-red-500/30 transition-colors">
+                            <span class="text-2xl">💸</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="trend-badge"
+                            :class="expensesTrend > 0 ? 'bg-red-500/20 text-red-300' : 'bg-emerald-500/20 text-emerald-300'">
+                            {{ expensesTrend >= 0 ? '↗' : '↘' }} {{ Math.abs(expensesTrend) }}%
+                        </span>
+                        <span class="text-white/40 ml-2">vs mes anterior</span>
+                    </div>
+                </div>
+
+                <!-- Budget Remaining Card -->
+                <div class="stat-card group">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium mb-1">Presupuesto Restante</p>
+                            <h3 class="text-2xl font-bold text-white">{{ formatCurrency(budgetRemaining) }}</h3>
+                        </div>
+                        <div
+                            class="p-3 rounded-xl bg-amber-500/20 text-amber-300 group-hover:bg-amber-500/30 transition-colors">
+                            <span class="text-2xl">🎯</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="w-full bg-white/10 rounded-full h-2 mb-2">
+                            <div class="bg-gradient-to-r from-amber-400 to-orange-500 h-2 rounded-full transition-all duration-500"
+                                :style="{ width: `${Math.min(budgetPercentage, 100)}%` }"></div>
+                        </div>
+                        <p class="text-xs text-white/50 text-right">{{ budgetPercentage }}% disponible</p>
+                    </div>
+                </div>
+
+                <!-- Savings Card -->
+                <div class="stat-card group">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-white/60 text-sm font-medium mb-1">Ahorro Estimado</p>
+                            <h3 class="text-2xl font-bold text-white">{{ formatCurrency(savings) }}</h3>
+                        </div>
+                        <div
+                            class="p-3 rounded-xl bg-emerald-500/20 text-emerald-300 group-hover:bg-emerald-500/30 transition-colors">
+                            <span class="text-2xl">🏦</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex items-center text-sm">
+                        <span class="trend-badge bg-emerald-500/20 text-emerald-300">
+                            {{ savingsTrend >= 0 ? '↗' : '↘' }} {{ Math.abs(savingsTrend) }}%
+                        </span>
+                        <span class="text-white/40 ml-2">vs mes anterior</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Transactions Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                <!-- Charts Section (Span 2 cols) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Trend Chart -->
+                    <div class="glass-panel p-6">
+                        <h3 class="text-lg font-semibold text-white mb-6">Tendencia Mensual</h3>
+                        <div class="h-64">
+                            <canvas ref="trendChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="transaction-amount" :class="amountClass(transaction.amount)">
-                        {{ formatCurrency(transaction.amount) }}
+                    <!-- Category Chart -->
+                    <div class="glass-panel p-6">
+                        <h3 class="text-lg font-semibold text-white mb-6">Gastos por Categoría</h3>
+                        <div class="h-64">
+                            <canvas ref="categoryChart"></canvas>
+                        </div>
                     </div>
+                </div>
+
+                <!-- Recent Transactions (Span 1 col) -->
+                <div class="glass-panel p-6 h-fit">
+                    <h3 class="text-lg font-semibold text-white mb-6">Transacciones Recientes</h3>
+
+                    <div v-if="recentTransactions.length === 0"
+                        class="flex flex-col items-center justify-center py-10 text-white/40">
+                        <div class="text-4xl mb-2">📋</div>
+                        <p>Sin movimientos</p>
+                    </div>
+
+                    <div v-else class="space-y-4">
+                        <div v-for="t in recentTransactions" :key="t.id"
+                            class="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/5 group">
+
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-lg bg-gradient-to-br from-fuchsia-500/20 to-purple-600/20 flex items-center justify-center text-lg">
+                                    {{ getCategoryIcon(t.category) }}
+                                </div>
+                                <div>
+                                    <h4
+                                        class="text-white font-medium text-sm group-hover:text-fuchsia-300 transition-colors">
+                                        {{ t.description }}</h4>
+                                    <p class="text-white/40 text-xs">{{ t.category }} • {{ formatDate(t.date) }}</p>
+                                </div>
+                            </div>
+
+                            <div class="font-bold text-red-400">
+                                {{ formatCurrency(t.amount) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button @click="$router.push('/gastos')"
+                        class="w-full mt-6 py-2 text-sm text-center text-fuchsia-300 hover:text-white transition-colors border-t border-white/10 pt-4">
+                        Ver todas las transacciones →
+                    </button>
                 </div>
             </div>
         </div>
@@ -117,35 +166,55 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import Chart from 'chart.js/auto';
+import { obtenerGastos } from '../api/gastos';
+import presupuestoService from '../api/presupuestos';
+import categoryService from '../api/categorias';
 
 export default {
     name: 'Dashboard',
     setup() {
         const categoryChart = ref(null);
         const trendChart = ref(null);
+        const loading = ref(true);
 
-        // Datos de ejemplo - reemplazar con API
-        const totalBalance = ref(5420500);
-        const monthExpenses = ref(2340750);
-        const budgetRemaining = ref(1659250);
-        const savings = ref(3079750);
+        // State for real data
+        const gastos = ref([]);
+        const presupuestos = ref([]);
+        const categorias = ref([]);
 
-        const balanceTrend = ref(12.5);
-        const expensesTrend = ref(-8.3);
-        const savingsTrend = ref(15.2);
+        // Statistics
+        const totalBalance = ref(0);
+        const monthExpenses = ref(0);
+        const budgetRemaining = ref(0);
+        const savings = ref(0);
+
+        // Trends
+        const balanceTrend = ref(0);
+        const expensesTrend = ref(0);
+        const savingsTrend = ref(0);
+
+        const recentTransactions = ref([]);
+
+        let categoryChartInstance = null;
+        let trendChartInstance = null;
 
         const budgetPercentage = computed(() => {
-            return ((budgetRemaining.value / 4000000) * 100).toFixed(1);
+            if (activeBudget.value === 0) return 0;
+            return ((budgetRemaining.value / activeBudget.value) * 100).toFixed(0);
         });
 
-        const recentTransactions = ref([
-            { id: 1, description: 'Supermercado Éxito', amount: -85500, category: 'Alimentación', date: '2024-12-08' },
-            { id: 2, description: 'Salario Mensual', amount: 2500000, category: 'Ingreso', date: '2024-12-05' },
-            { id: 3, description: 'Netflix Suscripción', amount: -45000, category: 'Entretenimiento', date: '2024-12-03' },
-            { id: 4, description: 'Gasolina Terpel', amount: -120000, category: 'Transporte', date: '2024-12-02' },
-        ]);
+        const activeBudget = computed(() => {
+            const now = new Date();
+            return presupuestos.value
+                .filter(p => {
+                    const start = new Date(p.fecha_inicio);
+                    const end = new Date(p.fecha_fin);
+                    return now >= start && now <= end;
+                })
+                .reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0);
+        });
 
         const formatCurrency = (value) => {
             return new Intl.NumberFormat('es-CO', {
@@ -156,67 +225,130 @@ export default {
         };
 
         const formatDate = (dateString) => {
+            if (!dateString) return '';
             const date = new Date(dateString);
-            const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
+            return new Intl.DateTimeFormat('es-CO', { month: 'short', day: 'numeric' }).format(date);
+        };
 
-            today.setHours(0, 0, 0, 0);
-            yesterday.setHours(0, 0, 0, 0);
-            date.setHours(0, 0, 0, 0);
+        const getCategoryIcon = (categoryName) => {
+            const icons = {
+                'Alimentación': '🍕', 'Comida': '🍔', 'Transporte': '🚗', 'Gasolina': '⛽',
+                'Entretenimiento': '🎮', 'Cine': '🎬', 'Servicios': '💡', 'Agua': '💧',
+                'Luz': '⚡', 'Salud': '🏥', 'Farmacia': '💊', 'Educación': '📚',
+                'Hogar': '🏠', 'Arriendo': '🔑', 'Ropa': '👕', 'Ingreso': '💰',
+                'Salario': '💵', 'Otros': '📦', 'Varios': '🎲'
+            };
+            for (const [key, icon] of Object.entries(icons)) {
+                if (categoryName && categoryName.includes(key)) return icon;
+            }
+            return '📊';
+        };
 
-            if (date.getTime() === today.getTime()) {
-                return 'Hoy';
-            } else if (date.getTime() === yesterday.getTime()) {
-                return 'Ayer';
-            } else {
-                return new Intl.DateTimeFormat('es-CO', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric'
-                }).format(new Date(dateString));
+        const loadData = async () => {
+            try {
+                const [gastosRes, presupuestosRes, categoriasRes] = await Promise.all([
+                    obtenerGastos(),
+                    presupuestoService.getAll(),
+                    categoryService.getAll()
+                ]);
+
+                // Normalize data
+                gastos.value = gastosRes.data.gastos || gastosRes.data || [];
+                presupuestos.value = presupuestosRes.data.presupuestos || presupuestosRes.data || [];
+                categorias.value = categoriasRes.data.categorias || categoriasRes.data || [];
+
+                calculateStats();
+                initCharts();
+
+            } catch (error) {
+                console.error("Error loading dashboard data:", error);
+            } finally {
+                loading.value = false;
             }
         };
 
-        const amountClass = (amount) => {
-            return amount >= 0 ? 'amount-positive' : 'amount-negative';
-        };
+        const calculateStats = () => {
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
 
-        const getCategoryIcon = (category) => {
-            const icons = {
-                'Alimentación': '🍕',
-                'Transporte': '🚗',
-                'Entretenimiento': '🎮',
-                'Servicios': '💡',
-                'Salud': '🏥',
-                'Educación': '📚',
-                'Hogar': '🏠',
-                'Ropa': '👕',
-                'Ingreso': '💰',
-                'Otros': '📦'
-            };
-            return icons[category] || '📊';
+            // 1. Month Expenses
+            const thisMonthExpenses = gastos.value.filter(g => {
+                const d = new Date(g.fecha_gasto);
+                return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+            });
+            monthExpenses.value = thisMonthExpenses.reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0);
+
+            // 2. Budget Remaining & Savings
+            budgetRemaining.value = activeBudget.value - monthExpenses.value;
+            savings.value = budgetRemaining.value;
+
+            // 3. Total Balance
+            totalBalance.value = activeBudget.value; // Using Active Budget as fund source
+
+            // 4. Trends
+            const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastMonthParams = { month: lastMonthDate.getMonth(), year: lastMonthDate.getFullYear() };
+
+            const lastMonthExpensesList = gastos.value.filter(g => {
+                const d = new Date(g.fecha_gasto);
+                return d.getMonth() === lastMonthParams.month && d.getFullYear() === lastMonthParams.year;
+            });
+
+            const lastMonthTotal = lastMonthExpensesList.reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0);
+
+            if (lastMonthTotal > 0) {
+                expensesTrend.value = ((monthExpenses.value - lastMonthTotal) / lastMonthTotal) * 100;
+            } else {
+                expensesTrend.value = lastMonthExpensesList.length > 0 ? 100 : 0;
+            }
+            expensesTrend.value = Number(expensesTrend.value.toFixed(1));
+
+            // 5. Recent Transactions
+            const sortedGastos = [...gastos.value].sort((a, b) => new Date(b.fecha_gasto) - new Date(a.fecha_gasto));
+            recentTransactions.value = sortedGastos.slice(0, 5).map(g => {
+                const cat = categorias.value.find(c => c.id === g.categoria_id);
+                return {
+                    id: g.id,
+                    description: g.descripcion,
+                    amount: -(Number(g.monto) || 0),
+                    category: cat ? cat.nombre : 'Sin categoría',
+                    date: g.fecha_gasto
+                };
+            });
         };
 
         const initCharts = () => {
-            // Gráfica de categorías (Doughnut)
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            if (trendChartInstance) trendChartInstance.destroy();
+
+            // Colors
+            const textColor = '#e2e8f0';
+            const gridColor = 'rgba(255, 255, 255, 0.1)';
+
+            // Category Data
+            const expensesByCategory = {};
+            gastos.value.forEach(g => {
+                const cat = categorias.value.find(c => c.id === g.categoria_id);
+                const catName = cat ? cat.nombre : 'Otros';
+                expensesByCategory[catName] = (expensesByCategory[catName] || 0) + (Number(g.monto) || 0);
+            });
+
+            const bgColors = [
+                'rgba(244, 114, 182, 0.8)', 'rgba(167, 139, 250, 0.8)', 'rgba(52, 211, 153, 0.8)',
+                'rgba(96, 165, 250, 0.8)', 'rgba(251, 191, 36, 0.8)', 'rgba(239, 68, 68, 0.8)'
+            ];
+
             if (categoryChart.value) {
-                const ctxCategory = categoryChart.value.getContext('2d');
-                new Chart(ctxCategory, {
+                categoryChartInstance = new Chart(categoryChart.value, {
                     type: 'doughnut',
                     data: {
-                        labels: ['Alimentación', 'Transporte', 'Entretenimiento', 'Servicios', 'Otros'],
+                        labels: Object.keys(expensesByCategory),
                         datasets: [{
-                            data: [450000, 280000, 190000, 320000, 180000],
-                            backgroundColor: [
-                                '#FF6384',
-                                '#36A2EB',
-                                '#FFCE56',
-                                '#4BC0C0',
-                                '#9966FF'
-                            ],
-                            borderWidth: 2,
-                            borderColor: '#fff'
+                            data: Object.values(expensesByCategory),
+                            backgroundColor: bgColors,
+                            borderColor: 'transparent',
+                            borderWidth: 0
                         }]
                     },
                     options: {
@@ -224,50 +356,68 @@ export default {
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'bottom'
+                                position: 'right',
+                                labels: { color: textColor, font: { size: 11 } }
                             }
                         }
                     }
                 });
             }
 
-            // Gráfica de tendencia (Line)
+            // Trend Data
+            const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            const today = new Date();
+            const labels = [];
+            const dataExpenses = [];
+
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                labels.push(monthNames[d.getMonth()]);
+
+                const total = gastos.value.filter(g => {
+                    const gDate = new Date(g.fecha_gasto);
+                    return gDate.getMonth() === d.getMonth() && gDate.getFullYear() === d.getFullYear();
+                }).reduce((acc, curr) => acc + (Number(curr.monto) || 0), 0);
+
+                dataExpenses.push(total);
+            }
+
             if (trendChart.value) {
-                const ctxTrend = trendChart.value.getContext('2d');
-                new Chart(ctxTrend, {
+                const ctx = trendChart.value.getContext('2d');
+                const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                gradient.addColorStop(0, 'rgba(167, 139, 250, 0.4)');
+                gradient.addColorStop(1, 'rgba(167, 139, 250, 0)');
+
+                trendChartInstance = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-                        datasets: [
-                            {
-                                label: 'Ingresos',
-                                data: [2500000, 2500000, 2700000, 2500000, 2800000, 2500000, 2600000, 2500000, 2700000, 2500000, 2900000, 2500000],
-                                borderColor: '#10B981',
-                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                tension: 0.4,
-                                fill: true
-                            },
-                            {
-                                label: 'Gastos',
-                                data: [1800000, 2100000, 1950000, 2200000, 1900000, 2300000, 2100000, 1950000, 2000000, 2150000, 1850000, 2340000],
-                                borderColor: '#EF4444',
-                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                                tension: 0.4,
-                                fill: true
-                            }
-                        ]
+                        labels: labels,
+                        datasets: [{
+                            label: 'Gastos',
+                            data: dataExpenses,
+                            borderColor: '#a78bfa',
+                            backgroundColor: gradient,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#8b5cf6',
+                            pointBorderColor: '#fff'
+                        }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
+                            legend: { display: false }
                         },
                         scales: {
                             y: {
-                                beginAtZero: true
+                                beginAtZero: true,
+                                grid: { color: gridColor },
+                                ticks: { color: textColor }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: textColor }
                             }
                         }
                     }
@@ -275,26 +425,14 @@ export default {
             }
         };
 
-        onMounted(() => {
-            initCharts();
-        });
+        onMounted(loadData);
 
         return {
-            categoryChart,
-            trendChart,
-            totalBalance,
-            monthExpenses,
-            budgetRemaining,
-            savings,
-            balanceTrend,
-            expensesTrend,
-            savingsTrend,
-            budgetPercentage,
+            categoryChart, trendChart,
+            totalBalance, monthExpenses, budgetRemaining, savings,
+            balanceTrend, expensesTrend, savingsTrend, budgetPercentage,
             recentTransactions,
-            formatCurrency,
-            formatDate,
-            amountClass,
-            getCategoryIcon
+            formatCurrency, formatDate, getCategoryIcon
         };
     }
 };
@@ -302,315 +440,54 @@ export default {
 
 <style scoped>
 .dashboard-container {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-    background: #F9FAFB;
     min-height: 100vh;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-/* Stat Cards */
-.stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: linear-gradient(135deg, #0f0720 0%, #1e1b4b 100%);
+    padding: 2rem;
     position: relative;
-    overflow: hidden;
+    font-family: 'Inter', sans-serif;
 }
 
-.stat-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--card-color), var(--card-color-light));
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
-.stat-card--primary {
-    --card-color: #3B82F6;
-    --card-color-light: #60A5FA;
+.glass-panel {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.stat-card--success {
-    --card-color: #10B981;
-    --card-color-light: #34D399;
-}
-
-.stat-card--danger {
-    --card-color: #EF4444;
-    --card-color-light: #F87171;
-}
-
-.stat-card--warning {
-    --card-color: #F59E0B;
-    --card-color-light: #FBBF24;
-}
-
-.stat-card__header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
-}
-
-.stat-card__icon {
-    font-size: 2rem;
-    line-height: 1;
-}
-
-.stat-card__title {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #6B7280;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.stat-card__value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #1F2937;
-    margin-bottom: 1rem;
-    line-height: 1;
-}
-
-.stat-card__trend {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.875rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    width: fit-content;
-}
-
-.trend--positive {
-    background: #D1FAE5;
-    color: #065F46;
-}
-
-.trend--negative {
-    background: #FEE2E2;
-    color: #991B1B;
-}
-
-.trend-icon {
-    font-size: 1rem;
-    font-weight: 700;
-}
-
-.trend-text {
+.trend-badge {
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
     font-weight: 600;
 }
 
-.trend-label {
-    color: #6B7280;
-    font-size: 0.75rem;
-    margin-left: 0.25rem;
+/* Scrollbar styling for recent transactions if needed */
+::-webkit-scrollbar {
+    width: 6px;
 }
 
-.progress-bar {
-    width: 100%;
-    height: 8px;
-    background: #E5E7EB;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 0.5rem;
+::-webkit-scrollbar-track {
+    background: transparent;
 }
 
-.progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--card-color), var(--card-color-light));
-    border-radius: 4px;
-    transition: width 0.3s ease;
-}
-
-.progress-text {
-    font-size: 0.75rem;
-    color: #6B7280;
-}
-
-/* Charts */
-.charts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.chart-card {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    height: 400px;
-}
-
-.chart-card h3 {
-    margin: 0 0 1rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1F2937;
-}
-
-.chart-card canvas {
-    max-height: 320px;
-}
-
-/* Transactions */
-.recent-transactions {
-    background: white;
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.recent-transactions h3 {
-    margin: 0 0 1rem 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1F2937;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 3rem 1rem;
-    color: #6B7280;
-}
-
-.empty-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-.transactions {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.transaction-item {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    background: white;
-    border: 1px solid #E5E7EB;
-    border-radius: 12px;
-    transition: all 0.2s;
-}
-
-.transaction-item:hover {
-    border-color: #D1D5DB;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transform: translateX(4px);
-}
-
-.transaction-item.transaction-income {
-    background: linear-gradient(to right, #ECFDF5 0%, white 20%);
-    border-left: 3px solid #10B981;
-}
-
-.transaction-icon {
-    font-size: 2rem;
-    width: 48px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #F3F4F6;
-    border-radius: 12px;
-}
-
-.transaction-details {
-    flex: 1;
-    min-width: 0;
-}
-
-.transaction-description {
-    margin: 0 0 0.25rem 0;
-    font-size: 1rem;
-    font-weight: 600;
-    color: #1F2937;
-}
-
-.transaction-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.875rem;
-    color: #6B7280;
-}
-
-.transaction-category {
-    padding: 0.125rem 0.5rem;
-    background: #F3F4F6;
-    border-radius: 4px;
-    font-size: 0.75rem;
-}
-
-.transaction-date {
-    font-size: 0.75rem;
-}
-
-.transaction-amount {
-    font-size: 1.25rem;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.amount-positive {
-    color: #10B981;
-}
-
-.amount-negative {
-    color: #EF4444;
-}
-
-@media (max-width: 768px) {
-    .dashboard-container {
-        padding: 1rem;
-    }
-
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .stat-card__value {
-        font-size: 1.5rem;
-    }
-
-    .transaction-item {
-        grid-template-columns: auto 1fr;
-        gap: 0.75rem;
-    }
-
-    .transaction-amount {
-        grid-column: 2;
-        text-align: right;
-        font-size: 1rem;
-    }
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
 }
 </style>

@@ -1,99 +1,153 @@
 <template>
-    <div class="categories-container">
-        <h1>📂 Mis Categorías</h1>
-
-        <!-- Loading -->
-        <div v-if="loading" class="loading">
-            <div class="spinner"></div>
-            <p>Cargando categorías...</p>
+    <div class="categories-container font-sans text-white">
+        <!-- Background Animations -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div
+                class="absolute top-20 left-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse">
+            </div>
+            <div class="absolute bottom-20 right-10 w-96 h-96 bg-fuchsia-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse"
+                style="animation-delay: 1s"></div>
         </div>
 
-        <!-- Error -->
-        <div v-else-if="error" class="error-box">
-            <p>❌ {{ error }}</p>
-            <button @click="fetchCategories" class="btn-retry">Reintentar</button>
-        </div>
+        <div class="relative z-10 w-full max-w-6xl mx-auto">
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight mb-2">📂 Mis Categorías</h1>
+                    <p class="text-white/60 text-sm">Gestiona las categorías para tus gastos</p>
+                </div>
+            </div>
 
-        <!-- Empty -->
-        <div v-else-if="categories.length === 0" class="empty">
-            <p>📦 No tienes categorías aún</p>
-            <button @click="openModal" class="btn-primary">Crear Primera Categoría</button>
-        </div>
+            <!-- Loading -->
+            <div v-if="loading" class="flex flex-col items-center justify-center py-20">
+                <div
+                    class="w-10 h-10 border-4 border-fuchsia-500/30 border-t-fuchsia-500 rounded-full animate-spin mb-4">
+                </div>
+                <p class="text-white/50 animate-pulse">Cargando categorías...</p>
+            </div>
 
-        <!-- Categories Table -->
-        <div v-else class="table-container">
-            <table class="categories-table">
-                <thead>
-                    <tr>
-                        <th>Icono</th>
-                        <th>Nombre</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="category in categories" :key="category.id">
-                        <td>
-                            <div class="category-icon"
-                                :style="{ backgroundColor: (category.color || '#667eea') + '30', color: category.color || '#667eea' }">
-                                {{ category.icon || '📊' }}
+            <!-- Error -->
+            <div v-else-if="error" class="p-6 rounded-2xl bg-red-500/10 border border-red-500/20 text-center">
+                <p class="text-red-300 mb-4">❌ {{ error }}</p>
+                <button @click="fetchCategories"
+                    class="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-lg transition-colors">
+                    Reintentar
+                </button>
+            </div>
+
+            <!-- Empty -->
+            <div v-else-if="categories.length === 0" class="glass-panel p-12 text-center">
+                <div class="text-6xl mb-4 opacity-50">📦</div>
+                <h3 class="text-xl font-medium text-white mb-2">No tienes categorías aún</h3>
+                <p class="text-white/50 mb-6">Crea tu primera categoría para organizar tus gastos</p>
+                <button @click="openModal" class="btn-primary">
+                    Crear Primera Categoría
+                </button>
+            </div>
+
+            <!-- Categories Table -->
+            <div v-else class="glass-panel overflow-hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/10 bg-white/5">
+                            <th class="p-4 text-white/60 font-medium text-sm">Icono</th>
+                            <th class="p-4 text-white/60 font-medium text-sm">Nombre</th>
+                            <th class="p-4 text-white/60 font-medium text-sm text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-white/5">
+                        <tr v-for="category in categories" :key="category.id"
+                            class="group hover:bg-white/5 transition-colors">
+                            <td class="p-4 w-20">
+                                <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-lg ring-1 ring-white/10"
+                                    :style="{ backgroundColor: (category.color || '#667eea') + '20', color: category.color || '#667eea' }">
+                                    {{ category.icon || '📊' }}
+                                </div>
+                            </td>
+                            <td class="p-4">
+                                <span
+                                    class="font-medium text-lg text-white group-hover:text-fuchsia-300 transition-colors">
+                                    {{ category.nombre || category.name || '-' }}
+                                </span>
+                            </td>
+                            <td class="p-4 text-right">
+                                <div
+                                    class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button @click="editCategory(category)"
+                                        class="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-colors"
+                                        title="Editar">
+                                        ✏️
+                                    </button>
+                                    <button @click="deleteCategory(category)"
+                                        class="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                                        title="Eliminar">
+                                        🗑️
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <button v-if="!loading && categories.length > 0" @click="openModal"
+                class="fixed bottom-8 right-8 w-14 h-14 rounded-full bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-lg shadow-purple-500/30 flex items-center justify-center text-2xl hover:scale-110 transition-transform z-20">
+                ➕
+            </button>
+
+            <!-- Modal -->
+            <div v-if="showModal"
+                class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                @click.self="closeModal">
+                <div class="glass-modal w-full max-w-md p-6 animate-fade-in relative">
+                    <button class="absolute top-4 right-4 text-white/40 hover:text-white" @click="closeModal">✕</button>
+
+                    <h2 class="text-xl font-bold text-white mb-6">
+                        {{ isEditing ? 'Editar' : 'Nueva' }} Categoría
+                    </h2>
+
+                    <form @submit.prevent="saveCategory" class="space-y-6">
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-white/70 mb-2">Nombre *</label>
+                            <input v-model="formData.nombre" type="text" required placeholder="Ej: Alimentación"
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-fuchsia-500/50 transition-all" />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-white/70 mb-2">Icono</label>
+                            <div class="grid grid-cols-6 gap-2">
+                                <button v-for="emoji in emojis" :key="emoji" type="button"
+                                    class="h-10 rounded-lg flex items-center justify-center text-lg border border-transparent hover:bg-white/10 transition-colors"
+                                    :class="{ 'bg-fuchsia-500/20 border-fuchsia-500': formData.icon === emoji, 'bg-white/5 border-white/5': formData.icon !== emoji }"
+                                    @click="formData.icon = emoji">
+                                    {{ emoji }}
+                                </button>
                             </div>
-                        </td>
-                        <td class="name-cell">{{ category.nombre || category.name || '-' }}</td>
-                        <td class="actions-cell">
-                            <button @click="editCategory(category)" class="btn-edit" title="Editar">✏️</button>
-                            <button @click="deleteCategory(category)" class="btn-delete" title="Eliminar">
-                                🗑️
+                        </div>
+
+                        <div class="form-group">
+                            <label class="block text-sm font-medium text-white/70 mb-2">Color</label>
+                            <div class="grid grid-cols-8 gap-2">
+                                <button v-for="color in colors" :key="color" type="button"
+                                    class="w-full aspect-square rounded-full border-2 transition-transform hover:scale-110"
+                                    :style="{ backgroundColor: color, borderColor: formData.color === color ? 'white' : 'transparent' }"
+                                    @click="formData.color = color">
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 mt-8 pt-4 border-t border-white/10">
+                            <button type="button" @click="closeModal"
+                                class="flex-1 py-3 rounded-xl bg-white/5 text-white/70 hover:bg-white/10 transition-colors font-medium">
+                                Cancelar
                             </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <button v-if="!loading && categories.length > 0" @click="openModal" class="btn-float">
-            ➕
-        </button>
-
-        <!-- Modal -->
-        <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-            <div class="modal">
-                <h2>{{ isEditing ? 'Editar' : 'Nueva' }} Categoría</h2>
-                <form @submit.prevent="saveCategory">
-                    <div class="form-group">
-                        <label>Nombre *</label>
-                        <input v-model="formData.nombre" type="text" required placeholder="Ej: Alimentación" />
-                    </div>
-
-                    <div class="form-group">
-                        <label>Icono</label>
-                        <div class="icon-grid">
-                            <button v-for="emoji in emojis" :key="emoji" type="button" class="icon-btn"
-                                :class="{ active: formData.icon === emoji }" @click="formData.icon = emoji">
-                                {{ emoji }}
+                            <button type="submit"
+                                class="flex-1 py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all"
+                                :disabled="saving">
+                                {{ saving ? 'Guardando...' : 'Guardar' }}
                             </button>
                         </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Color</label>
-                        <div class="color-grid">
-                            <button v-for="color in colors" :key="color" type="button" class="color-btn"
-                                :style="{ backgroundColor: color }" :class="{ active: formData.color === color }"
-                                @click="formData.color = color">
-                                <span v-if="formData.color === color">✓</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button type="button" @click="closeModal" class="btn-secondary">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-primary" :disabled="saving">
-                            {{ saving ? 'Guardando...' : 'Guardar' }}
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -112,7 +166,7 @@ const saving = ref(false)
 const isEditing = ref(false)
 const editingId = ref(null)
 
-// formulario - usando 'nombre' para coincidir con la BD
+// formulario
 const formData = ref({
     nombre: '',
     icon: '📊',
@@ -123,23 +177,11 @@ const formData = ref({
 const emojis = ['🍕', '🚗', '🎮', '💡', '🏥', '📚', '🏠', '👕', '🎬', '✈️', '💰', '🎵']
 const colors = ['#667eea', '#EF4444', '#10B981', '#F59E0B', '#3B82F6', '#8B5CF6', '#EC4899', '#06B6D4']
 
-// formato moneda
-const formatMoney = (amount) =>
-    new Intl.NumberFormat('es-CO', {
-        style: 'currency',
-        currency: 'COP',
-        minimumFractionDigits: 0
-    }).format(amount)
-
-// 🔥 TRAER CATEGORÍAS DESDE LA BD
 const fetchCategories = async () => {
     loading.value = true
     error.value = null
     try {
         const response = await categoryService.getAll()
-        console.log('🔍 Respuesta completa de la API:', response)
-        console.log('🔍 response.data:', response.data)
-        // Intenta diferentes estructuras posibles
         categories.value = response.data.categorias || response.data || []
     } catch (err) {
         console.error('❌ Error al cargar categorías:', err)
@@ -149,7 +191,6 @@ const fetchCategories = async () => {
     }
 }
 
-// modal
 const openModal = () => {
     isEditing.value = false
     editingId.value = null
@@ -157,11 +198,8 @@ const openModal = () => {
     showModal.value = true
 }
 
-const closeModal = () => {
-    showModal.value = false
-}
+const closeModal = () => showModal.value = false
 
-// editar
 const editCategory = (category) => {
     isEditing.value = true
     editingId.value = category.id
@@ -173,9 +211,7 @@ const editCategory = (category) => {
     showModal.value = true
 }
 
-// guardar
 const saveCategory = async () => {
-    // Validar que el nombre no esté vacío
     if (!formData.value.nombre || formData.value.nombre.trim() === '') {
         alert('El nombre de la categoría es requerido')
         return
@@ -189,322 +225,89 @@ const saveCategory = async () => {
             color: formData.value.color
         }
 
-        console.log('📤 Enviando datos:', dataToSend)
-
         if (isEditing.value) {
             await categoryService.update(editingId.value, dataToSend)
-            console.log('✅ Categoría actualizada')
         } else {
             await categoryService.create(dataToSend)
-            console.log('✅ Categoría creada')
         }
         await fetchCategories()
         closeModal()
     } catch (err) {
-        console.error('❌ Error al guardar:', err)
-        alert('Error al guardar la categoría: ' + (err.response?.data?.message || err.message))
+        console.error(err)
+        alert('Error al guardar: ' + (err.response?.data?.message || err.message))
     } finally {
         saving.value = false
     }
 }
 
-// eliminar
 const deleteCategory = async (category) => {
-    console.log('🗑️ Intentando eliminar categoría:', category)
-
     const categoryName = category.nombre || category.name || 'esta categoría'
     if (!confirm(`¿Eliminar "${categoryName}"?`)) return
 
     try {
-        console.log('📤 Eliminando ID:', category.id)
         await categoryService.delete(category.id)
-        console.log('✅ Categoría eliminada exitosamente')
         await fetchCategories()
     } catch (err) {
-        console.error('❌ Error al eliminar:', err)
-        console.error('❌ Response:', err.response?.data)
-        alert('Error al eliminar la categoría: ' + (err.response?.data?.message || err.message))
+        console.error(err)
+        alert('Error al eliminar: ' + (err.response?.data?.message || err.message))
     }
 }
 
-// cargar al iniciar
 onMounted(fetchCategories)
 </script>
 
-
 <style scoped>
-/* ——— estilos generales ——— */
 .categories-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f0720 0%, #1e1b4b 100%);
     padding: 2rem;
-    max-width: 1200px;
-    margin: auto;
+    position: relative;
 }
 
-h1 {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
+.glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1.5rem;
 }
 
-.loading,
-.empty,
-.error-box {
-    text-align: center;
-    padding: 2rem;
-}
-
-.btn-retry {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background: #667eea;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+.glass-modal {
+    background: #1a1625;
+    background: linear-gradient(145deg, #1a1625, #13101c);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .btn-primary {
     padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, #667eea, #764ba2);
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
     color: white;
     border: none;
-    border-radius: 8px;
-    cursor: pointer;
+    border-radius: 0.75rem;
     font-weight: 600;
-}
-
-/* ——— tabla ——— */
-.table-container {
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-}
-
-.categories-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.categories-table thead {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.categories-table th {
-    padding: 1rem;
-    text-align: left;
-    font-weight: 600;
-}
-
-.categories-table tbody tr {
-    border-bottom: 1px solid #eee;
-    transition: background-color 0.2s;
-}
-
-.categories-table tbody tr:hover {
-    background-color: #f8f9ff;
-}
-
-.categories-table td {
-    padding: 1rem;
-    vertical-align: middle;
-}
-
-.category-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-}
-
-.name-cell {
-    font-weight: 600;
-    color: #333;
-}
-
-.desc-cell {
-    color: #666;
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.center-cell {
-    text-align: center;
-    font-weight: 500;
-}
-
-.money-cell {
-    font-weight: 600;
-    color: #10B981;
-}
-
-.actions-cell {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.btn-edit,
-.btn-delete {
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    border: none;
     cursor: pointer;
-    font-size: 1rem;
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.btn-edit {
-    background: #e0e7ff;
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
-.btn-edit:hover {
-    transform: scale(1.1);
-}
-
-.btn-delete {
-    background: #fee2e2;
-}
-
-.btn-delete:hover:not(:disabled) {
-    transform: scale(1.1);
-}
-
-.btn-delete:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* ——— botón flotante ——— */
-.btn-float {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: #fff;
-    font-size: 1.5rem;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    transition: transform 0.2s;
-}
-
-.btn-float:hover {
-    transform: scale(1.1);
-}
-
-/* ——— modal ——— */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal {
-    background: #fff;
-    padding: 2rem;
-    border-radius: 14px;
-    width: 90%;
-    max-width: 480px;
-}
-
-.modal h2 {
-    margin-bottom: 1.5rem;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.form-group input,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 1rem;
-}
-
-.icon-grid,
-.color-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 0.5rem;
-}
-
-.icon-btn,
-.color-btn {
-    padding: 0.5rem;
-    border-radius: 8px;
-    border: 2px solid #ddd;
-    cursor: pointer;
-    background: white;
-    font-size: 1.2rem;
-}
-
-.icon-btn.active,
-.color-btn.active {
-    border-color: #667eea;
-}
-
-.color-btn {
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: bold;
-}
-
-.modal-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.btn-secondary {
-    flex: 1;
-    padding: 0.75rem;
-    background: #f3f4f6;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.modal-actions .btn-primary {
-    flex: 1;
-}
-
-.spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #eee;
-    border-top-color: #667eea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
+@keyframes fade-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
     }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.2s ease-out;
 }
 </style>

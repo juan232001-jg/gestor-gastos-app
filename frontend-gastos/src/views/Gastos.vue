@@ -67,6 +67,9 @@
                   <th class="px-6 py-4 text-left text-sm font-bold text-fuchsia-300 uppercase tracking-wider">
                     Descripción
                   </th>
+                  <th class="px-6 py-4 text-left text-sm font-bold text-fuchsia-300 uppercase tracking-wider">
+                    Categoría
+                  </th>
                   <th class="px-6 py-4 text-right text-sm font-bold text-fuchsia-300 uppercase tracking-wider">
                     Monto
                   </th>
@@ -93,6 +96,15 @@
                         </svg>
                       </div>
                       <span class="text-white font-medium">{{ item.descripcion }}</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-5">
+                    <div class="flex items-center space-x-3">
+                      <div
+                        class="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500/20 to-purple-600/20 flex items-center justify-center flex-shrink-0 text-2xl">
+                        {{ getCategoryIcon(item.categoria_nombre) }}
+                      </div>
+                      <span class="text-white font-medium">{{ item.categoria_nombre }}</span>
                     </div>
                   </td>
 
@@ -143,7 +155,7 @@
 
                 <!-- Mensaje cuando no hay gastos -->
                 <tr v-if="gastos.length === 0">
-                  <td colspan="4" class="px-6 py-12 text-center">
+                  <td colspan="5" class="px-6 py-12 text-center">
                     <div class="flex flex-col items-center justify-center space-y-3">
                       <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
                         <svg class="w-8 h-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,9 +198,42 @@ const formatearFecha = (fecha) => {
   })
 }
 
+const getCategoryIcon = (categoryName) => {
+  const icons = {
+    'Alimentación': '🍕',
+    'Comida': '🍔',
+    'Transporte': '🚗',
+    'Gasolina': '⛽',
+    'Entretenimiento': '🎮',
+    'Cine': '🎬',
+    'Servicios': '💡',
+    'Agua': '💧',
+    'Luz': '⚡',
+    'Salud': '🏥',
+    'Farmacia': '💊',
+    'Educación': '📚',
+    'Hogar': '🏠',
+    'Arriendo': '🔑',
+    'Ropa': '👕',
+    'Ingreso': '💰',
+    'Salario': '💵',
+    'Otros': '📦',
+    'Varios': '🎲'
+  };
+
+  // Try partial match
+  for (const [key, icon] of Object.entries(icons)) {
+    if (categoryName && categoryName.includes(key)) return icon;
+  }
+  return '📊';
+};
+
 const cargar = async () => {
   const res = await obtenerGastos()
+
   gastos.value = res.data.gastos
+  console.log(res.data.gastos)
+
 }
 
 const eliminar = async (id) => {
