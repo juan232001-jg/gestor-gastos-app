@@ -19,6 +19,7 @@ const gastosRoutes = require('./routes/gastos');
 const categoariaRoutes= require('./routes/categoarias')
 const presupuestoRoutes= require('./routes/presupuestos')
 const adminRoutes = require('./routes/admin')
+const rolesRouters= require('./routes/roles')
 
 
 // Carga las variables de entorno en process.env
@@ -40,6 +41,8 @@ app.use('/api/gastos', gastosRoutes); // Rutas para gestión de gastos
 app.use('/api/cate',categoariaRoutes) // Rutas para gestion  de categorias 
 app.use('/api/presupuesto',presupuestoRoutes) // Rutas para gestion  de presupuesto
 app.use('/api/admin',adminRoutes) // Rutas para usuarios adminitradores 
+app.use('/api/roles',rolesRouters) // Rutas para roles  
+
 
 // Inicia el servidor en el puerto definido en el archivo .env
 app.listen(process.env.PORT, () => {

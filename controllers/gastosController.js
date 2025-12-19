@@ -35,28 +35,36 @@ exports.agregarGasto = async (req, res) => {
 };
 
 // Obtener todos los gastos
-exports.obtenerGastos = async (req, res) => {
+exports.obtenerTodosLosGastos = async (req, res) => {
     try {
-        const usuario_id = req.userId;
-        if (!usuario_id) return res.status(401).json({ message: 'Debe iniciar sesión' });
-
         const [gastos] = await db.query(
-            `SELECT id, categoria_id, descripcion, monto, fecha_gasto 
-             FROM gastos WHERE usuario_id = ? ORDER BY fecha_gasto DESC`,
-            [usuario_id]
+            `SELECT 
+                g.id,
+                g.descripcion,
+                g.monto,
+                g.fecha_gasto,
+                g.usuario_id,
+                u.nombre AS usuario_nombre,
+                g.categoria_id,
+                c.nombre AS categoria_nombre
+             FROM gastos g
+             JOIN usuarios u ON g.usuario_id = u.id
+             LEFT JOIN categorias c ON g.categoria_id = c.id
+             ORDER BY g.fecha_gasto DESC`
         );
 
         return res.status(200).json({
-            message: 'Gastos obtenidos con éxito',
             total: gastos.length,
             gastos
         });
 
     } catch (error) {
         console.error('Error al obtener gastos:', error);
-        return res.status(500).json({ message: 'Error interno', error: error.message });
+        return res.status(500).json({ message: 'Error interno' });
     }
 };
+
+
 
 // Eliminar gasto
 exports.eliminarGasto = async (req, res) => {

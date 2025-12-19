@@ -3,18 +3,31 @@ const db = require('../db');
 // Obtener todos los usuarios
 exports.obtenerUsuarios = async (req, res) => {
   try {
-    const [rows] = await db.query(
-      `SELECT u.id, u.nombre, u.correo, u.estado, u.fecha_registro, r.nombre AS rol
-       FROM usuarios u
-       JOIN roles r ON u.rol_id = r.id`
-    );
-    res.json(rows);
-  } catch (error) {
-    console.error('Error en obtenerUsuarios:', error);
-    res.status(500).json({ message: 'Error al obtener usuarios' });
-  }
-};
+    const [rows] = await db.query(`
+      SELECT 
+        u.id,
+        u.nombre,
+        u.correo,
+        u.estado,
+        u.fecha_registro,
+        u.rol_id,
+        r.nombre AS rol_nombre
+      FROM usuarios u
+      INNER JOIN roles r ON u.rol_id = r.id
+    `)
 
+    res.json({
+      success: true,
+      data: rows
+    })
+  } catch (error) {
+    console.error('Error en obtenerUsuarios:', error)
+    res.status(500).json({
+      success: false,
+      message: 'Error al obtener usuarios'
+    })
+  }
+}
 // Obtener usuario por ID
 exports.obtenerUsuarioPorId = async (req, res) => {
   try {

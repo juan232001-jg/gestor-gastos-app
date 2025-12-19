@@ -2,6 +2,7 @@
   <div class="min-h-screen bg-[#0a0118] relative overflow-hidden flex items-center justify-center p-6">
 
     <!-- Grid pattern background -->
+     
     <div class="absolute inset-0 bg-grid-pattern opacity-20"></div>
 
     <!-- Gradient orbs -->

@@ -11,7 +11,7 @@ const { verificarUsuarioActivo } = require('../middlewares/usuarioActivo');
 
 
 router.post('/', verificarToken,verificarUsuarioActivo,verificarRol(['admin','usuario']), gastosController.agregarGasto);
-router.get('/', verificarToken,verificarUsuarioActivo,verificarRol(['admin','usuario','invitado']), gastosController.obtenerGastos);
+router.get('/', verificarToken,verificarUsuarioActivo,verificarRol(['admin','usuario','invitado']), gastosController.obtenerTodosLosGastos);
 router.delete('/:id', verificarToken,verificarUsuarioActivo,verificarRol(['admin','usuario']), gastosController.eliminarGasto);
 router.put('/:id',verificarToken,verificarUsuarioActivo,verificarRol(['admin','usuario']), gastosController.editarGasto)
 router.get('/:id', verificarToken,verificarUsuarioActivo,verificarRol(['admin','usuario','invitado']),gastosController.obtenerGastoPorId)
